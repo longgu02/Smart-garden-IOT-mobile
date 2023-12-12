@@ -20,17 +20,7 @@ function CustomDrawerContent({
 	...rest
 }) {
 	const insets = useSafeArea();
-	const screens = [
-		"Home",
-		"Woman",
-		"Man",
-		"Kids",
-		"New Collection",
-		"Profile",
-		"Settings",
-		"Components",
-		"Garden",
-	];
+	const screens = ["Home", "Profile", "Settings", "Components", "Garden"];
 	return (
 		<Block
 			style={styles.container}
@@ -62,7 +52,7 @@ function CustomDrawerContent({
 					</Text>
 				</Block>
 			</Block>
-			<Block flex style={{ paddingLeft: 7, paddingRight: 14 }}>
+			<Block flex style={{ paddingLeft: 7, paddingRight: 14, marginTop: 10 }}>
 				<ScrollView
 					contentContainerStyle={[
 						{
@@ -89,12 +79,12 @@ function CustomDrawerContent({
 				<DrawerCustomItem
 					title="Sign In"
 					navigation={navigation}
-					focused={state.index === 9 ? true : false}
+					focused={state.index === 5 ? true : false}
 				/>
 				<DrawerCustomItem
 					title="Sign Up"
 					navigation={navigation}
-					focused={state.index === 10 ? true : false}
+					focused={state.index === 6 ? true : false}
 				/>
 			</Block>
 		</Block>
@@ -106,7 +96,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	header: {
-		backgroundColor: "#4B1958",
+		// backgroundColor: "#4B1958",
+		backgroundColor: "#2F4C39",
 		paddingHorizontal: 28,
 		paddingBottom: theme.SIZES.BASE,
 		paddingTop: theme.SIZES.BASE * 2,

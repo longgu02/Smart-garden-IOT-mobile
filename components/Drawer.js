@@ -28,42 +28,6 @@ class DrawerItem extends React.Component {
 						color={focused ? "white" : materialTheme.COLORS.MUTED}
 					/>
 				);
-			case "Woman":
-				return (
-					<Icon
-						size={16}
-						name="md-woman"
-						family="ionicon"
-						color={focused ? "white" : materialTheme.COLORS.MUTED}
-					/>
-				);
-			case "Man":
-				return (
-					<Icon
-						size={16}
-						name="man"
-						family="entypo"
-						color={focused ? "white" : materialTheme.COLORS.MUTED}
-					/>
-				);
-			case "Kids":
-				return (
-					<Icon
-						size={16}
-						name="baby"
-						family="GalioExtra"
-						color={focused ? "white" : materialTheme.COLORS.MUTED}
-					/>
-				);
-			case "New Collection":
-				return (
-					<Icon
-						size={16}
-						name="grid-on"
-						family="material"
-						color={focused ? "white" : materialTheme.COLORS.MUTED}
-					/>
-				);
 			case "Profile":
 				return (
 					<Icon
@@ -189,7 +153,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 	},
 	activeStyle: {
-		backgroundColor: materialTheme.COLORS.ACTIVE,
+		backgroundColor: "#2F4C39",
 		borderRadius: 4,
 	},
 	shadow: {

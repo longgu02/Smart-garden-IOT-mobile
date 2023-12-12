@@ -24,8 +24,8 @@ const Drawer = createDrawerNavigator();
 
 const profile = {
 	avatar: Images.Profile,
-	name: "Rachel Brown",
-	type: "Seller",
+	name: "Pham Long",
+	type: "User",
 	plan: "Pro",
 	rating: 4.8,
 };
@@ -234,64 +234,6 @@ function AppStack(props) {
 							size={16}
 							name="shop"
 							family="GalioExtra"
-							color={focused ? "white" : materialTheme.COLORS.MUTED}
-						/>
-					),
-				}}
-			/>
-
-			<Drawer.Screen
-				name="Woman"
-				component={ProScreen}
-				options={{
-					drawerIcon: ({ focused }) => (
-						<Icon
-							size={16}
-							name="md-woman"
-							family="ionicon"
-							color={focused ? "white" : materialTheme.COLORS.MUTED}
-							style={{ marginLeft: 4, marginRight: 4 }}
-						/>
-					),
-				}}
-			/>
-			<Drawer.Screen
-				name="Man"
-				component={ProScreen}
-				options={{
-					drawerIcon: ({ focused }) => (
-						<Icon
-							size={16}
-							name="man"
-							family="entypo"
-							color={focused ? "white" : materialTheme.COLORS.MUTED}
-						/>
-					),
-				}}
-			/>
-			<Drawer.Screen
-				name="Kids"
-				component={ProScreen}
-				options={{
-					drawerIcon: ({ focused }) => (
-						<Icon
-							size={16}
-							name="baby"
-							family="GalioExtra"
-							color={focused ? "white" : materialTheme.COLORS.MUTED}
-						/>
-					),
-				}}
-			/>
-			<Drawer.Screen
-				name="New Collection"
-				component={ProScreen}
-				options={{
-					drawerIcon: ({ focused }) => (
-						<Icon
-							size={16}
-							name="grid-on"
-							family="material"
 							color={focused ? "white" : materialTheme.COLORS.MUTED}
 						/>
 					),

@@ -21,11 +21,14 @@ export default class Onboarding extends React.Component {
 				<StatusBar barStyle="light-content" />
 				<Block flex center>
 					<ImageBackground
-						source={{ uri: Images.Onboarding }}
+						source={{
+							uri: "https://cdn.pixabay.com/photo/2021/03/15/17/35/garden-6097539_1280.png",
+						}}
 						style={{
 							height: height,
 							width: width,
-							marginTop: "-55%",
+							// marginTop: "-55%",
+							opacity: 0.6,
 							zIndex: 1,
 						}}
 					/>
@@ -35,23 +38,22 @@ export default class Onboarding extends React.Component {
 						<Block>
 							<Block>
 								<Text color="white" size={60}>
-									Material
+									Gard
 								</Text>
 							</Block>
-							<Block row>
+							{/* <Block row>
 								<Text color="white" size={60}>
-									Kit
+									Garden
 								</Text>
-							</Block>
+							</Block> */}
 							<Text size={16} color="rgba(255,255,255,0.6)">
-								Fully coded React Native components.
+								Smart gardening assistant.
 							</Text>
 						</Block>
 						<Block center>
 							<Button
 								shadowless
 								style={styles.button}
-								color={materialTheme.COLORS.BUTTON_COLOR}
 								onPress={() => navigation.navigate("App")}
 							>
 								GET STARTED
@@ -74,6 +76,7 @@ const styles = StyleSheet.create({
 		bottom: theme.SIZES.BASE,
 	},
 	button: {
+		backgroundColor: "#2F4C39",
 		width: width - theme.SIZES.BASE * 4,
 		height: theme.SIZES.BASE * 3,
 		shadowRadius: 0,

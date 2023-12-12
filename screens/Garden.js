@@ -72,34 +72,11 @@ export default class Garden extends React.Component {
 
 	renderProducts = () => {
 		return (
-			<ScrollView
-				showsVerticalScrollIndicator={false}
-				// contentContainerStyle={styles.products}
-			>
+			<ScrollView showsVerticalScrollIndicator={false}>
 				<GardenCard />
 				<GardenCard />
 				<GardenCard />
 				<GardenCard />
-				{/* <Block flex>
-					<Product
-						product={products[0]}
-						full
-						onPress={() => navigation.navigate("Garden Detail")}
-					/>
-					<Product product={products[1]} full />
-					<Product product={products[0]} full />
-					<Product product={products[0]} full />
-					<Product product={products[0]} full />
-					{/* <Block flex row>
-						<Product
-							product={products[1]}
-							style={{ marginRight: theme.SIZES.BASE }}
-						/>
-						<Product product={products[2]} />
-					</Block>
-					<Product product={products[3]} horizontal />
-					<Product product={products[4]} full />}
-				</Block> */}
 			</ScrollView>
 		);
 	};
