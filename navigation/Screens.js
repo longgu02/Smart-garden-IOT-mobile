@@ -16,6 +16,8 @@ import SettingsScreen from "../screens/Settings";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import GardenConfigScreen from "../screens/GardenConfig";
+import Login from "../screens/Login";
+import Signup from "../screens/Signup";
 
 const { width } = Dimensions.get("screen");
 
@@ -165,6 +167,19 @@ function GardenStack(props) {
 			/>
 			<Stack.Screen
 				name="Garden Detail"
+				component={GardenDetailScreen}
+				options={{
+					header: ({ navigation, scene }) => (
+						<Header
+							title="Garden Detail"
+							navigation={navigation}
+							scene={scene}
+						/>
+					),
+				}}
+			/>
+			<Stack.Screen
+				name="Create zone"
 				component={GardenDetailScreen}
 				options={{
 					header: ({ navigation, scene }) => (
@@ -344,7 +359,40 @@ export default function OnboardingStack(props) {
 					headerTransparent: true,
 				}}
 			/>
+			<Stack.Screen
+				name="Login"
+				component={LoginStack}
+				option={{
+					headerTransparent: true,
+				}}
+			/>
 			<Stack.Screen name="App" component={AppStack} />
+		</Stack.Navigator>
+	);
+}
+
+function LoginStack(props) {
+	return (
+		<Stack.Navigator
+			screenOptions={{
+				mode: "card",
+				headerShown: false,
+			}}
+		>
+			<Stack.Screen
+				name="Login"
+				component={Login}
+				option={{
+					headerTransparent: true,
+				}}
+			/>
+			<Stack.Screen
+				name="Signup"
+				component={Signup}
+				option={{
+					headerTransparent: true,
+				}}
+			/>
 		</Stack.Navigator>
 	);
 }

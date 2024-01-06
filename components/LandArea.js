@@ -18,7 +18,7 @@ import materialTheme from "../constants/Theme";
 const { width } = Dimensions.get("screen");
 
 function LandArea(props) {
-	const { navigation, data, focus, onPress } = props;
+	const { navigation, data, focus, onPress, onLongPress } = props;
 	return (
 		<Block
 			card
@@ -32,7 +32,10 @@ function LandArea(props) {
             <Image source={{ uri: product.image }} style={imageStyles} />
           </Block>
         </TouchableWithoutFeedback> */}
-			<TouchableWithoutFeedback onPress={() => onPress()}>
+			<TouchableWithoutFeedback
+				onLongPress={() => onLongPress()}
+				onPress={() => onPress()}
+			>
 				<Block flex column middle>
 					<Block>
 						<Block row>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Dimensions, ScrollView } from "react-native";
 import { Button, Block, Text, Input, theme, Card } from "galio-framework";
 
@@ -7,10 +7,28 @@ import { Icon, Product } from "../components/";
 const { width } = Dimensions.get("screen");
 import products from "../constants/products";
 import GardenCard from "../components/GardenCard";
+import { retrieveData } from "../services/asyncStorage";
 
-export default class Garden extends React.Component {
-	renderSearch = () => {
-		const { navigation } = this.props;
+export default function Garden(props) {
+	const { navigation } = props;
+
+	useEffect(() => {
+		retrieveData("jwt").then((jwt) => {
+			fetch("http://192.168.2.6:3000/garden", {
+				method: "GET",
+				headers: {
+					Accept: "application/json",
+					authorization: "Bearer " + jwt,
+					"Content-Type": "application/json",
+				},
+			})
+				.then((res) => res.json())
+				.then((data) => console.log(data))
+				.catch((err) => console.error(err));
+		});
+	}, []);
+
+	const renderSearch = () => {
 		const iconCamera = (
 			<Icon
 				size={16}
@@ -32,9 +50,7 @@ export default class Garden extends React.Component {
 		);
 	};
 
-	renderTabs = () => {
-		const { navigation } = this.props;
-
+	const renderTabs = () => {
 		return (
 			<Block row style={styles.tabs}>
 				<Button
@@ -70,7 +86,7 @@ export default class Garden extends React.Component {
 		);
 	};
 
-	renderProducts = () => {
+	const renderProducts = () => {
 		return (
 			<ScrollView showsVerticalScrollIndicator={false}>
 				<GardenCard />
@@ -81,19 +97,17 @@ export default class Garden extends React.Component {
 		);
 	};
 
-	render() {
-		return (
-			<Block>
-				{/* <Card
+	return (
+		<Block>
+			{/* <Card
 					title="day la title"
 					caption="caption"
 					location="location"
 					image="https://images.unsplash.com/photo-1497802176320-541c8e8de98d?&w=1600&h=900&fit=crop&crop=entropy&q=300"
 				/> */}
-				{this.renderProducts()}
-			</Block>
-		);
-	}
+			{renderProducts()}
+		</Block>
+	);
 }
 
 const styles = StyleSheet.create({

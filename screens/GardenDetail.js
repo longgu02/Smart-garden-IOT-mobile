@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { StyleSheet, Dimensions, ScrollView, Animated } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+	StyleSheet,
+	Dimensions,
+	ScrollView,
+	Animated,
+	View,
+	Alert,
+} from "react-native";
 import { Button, Block, Text, Input, theme } from "galio-framework";
 import { Icon, LandArea, Product } from "../components/";
 import { HeaderHeight } from "../constants/utils";
@@ -9,134 +16,223 @@ const { width, height } = Dimensions.get("screen");
 import products from "../constants/products";
 import { Switch } from "react-native-gesture-handler";
 import { BottomSheet } from "../components/BottomSheet";
-
+import { useSelector, useDispatch } from "react-redux";
+import { increment } from "../redux/features/counterSlice";
+import { retrieveData } from "../services/asyncStorage";
+import {
+	fetchAvailableDevices,
+	fetchZones,
+	removeZone,
+	setSelectedZone,
+} from "../redux/features/gardenSlice";
+import RNPickerSelect from "react-native-picker-select";
+import Modal from "react-native-modal";
 const thumbMeasure = (width - 48 - 32) / 3;
 
 export default function GardenDetail(props) {
 	const { navigation } = props;
-	const [selectedArea, setSelectedArea] = useState({ index: -1 });
+	// const [selectedArea, setSelectedZone] = useState({ index: -1 });
+	const dispatch = useDispatch();
+	const { selectedZone, zones, availableDevices } = useSelector(
+		(state) => state.garden
+	);
+	const [areaData, setAreaData] = useState([]);
+	const [createForm, setCreateForm] = useState({});
+	const [isModalVisible, setModalVisible] = useState(false);
 
-	const TEST_GARDEN = [
-		{
-			humid: 10,
-			temp: 30,
-			isLightOn: true,
-			isPumpOn: false,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 32,
-			isLightOn: true,
-			isPumpOn: true,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 40,
-			isLightOn: true,
-			isPumpOn: false,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 60,
-			isLightOn: true,
-			isPumpOn: false,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 90,
-			isLightOn: false,
-			isPumpOn: true,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 70,
-			isLightOn: true,
-			isPumpOn: false,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 50,
-			isLightOn: false,
-			isPumpOn: false,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 40,
-			isLightOn: false,
-			isPumpOn: true,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-		{
-			humid: 10,
-			temp: 20,
-			isLightOn: true,
-			isPumpOn: false,
-			isWateringScheduleOn: false,
-			isLightScheduleOn: true,
-		},
-	];
+	const toggleModal = () => {
+		setModalVisible(!isModalVisible);
+	};
+
+	const handleAddZone = () => {
+		retrieveData("jwt")
+			.then((jwt) => {
+				const payload = {
+					gardenId: "65977743884feab5659ece12",
+					...createForm,
+				};
+				console.log(payload);
+				fetch("http://192.168.2.6:3000/garden/zone", {
+					method: "POST",
+					headers: {
+						Accept: "application/json",
+						authorization: "Bearer " + jwt,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(payload),
+				})
+					.then((res) => toggleModal())
+					// .then((data) => {
+					// 	// setAreaData(data);
+					// 	// dispatch(fetchZones(data));
+					// 	console.log(data);
+					// })
+					.catch((err) => console.error(err));
+			})
+			.catch((err) => console.error(err));
+	};
+
+	useEffect(() => {
+		retrieveData("jwt").then((jwt) => {
+			fetch("http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone", {
+				method: "GET",
+				headers: {
+					Accept: "application/json",
+					authorization: "Bearer " + jwt,
+					"Content-Type": "application/json",
+				},
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					setAreaData(data);
+					dispatch(fetchZones(data));
+					console.log(data);
+				})
+				.catch((err) => console.error(err));
+			fetch("http://192.168.2.6:3000/garden/65977743884feab5659ece12/device", {
+				method: "GET",
+				headers: {
+					Accept: "application/json",
+					authorization: "Bearer " + jwt,
+					"Content-Type": "application/json",
+				},
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					dispatch(fetchAvailableDevices(data));
+					console.log(data);
+				})
+				.catch((err) => console.error(err));
+		});
+		// const unsubscribe = navigation.addListener("focus", () => {
+		// 	setSelectedZone(zones.find((item) => item._id == selectedZone._id));
+		// 	//Put your Data loading function here instead of my loadData()
+		// });
+
+		// return unsubscribe;
+	}, [navigation]);
+
+	const handleRemoveZone = (index) => {
+		console.log(`http://192.168.2.6:3000/garden/zone/${zones[index]._id}`);
+		retrieveData("jwt").then((jwt) => {
+			fetch(`http://192.168.2.6:3000/garden/zone/${zones[index]._id}`, {
+				method: "DELETE",
+				headers: {
+					Accept: "application/json",
+					authorization: "Bearer " + jwt,
+					"Content-Type": "application/json",
+				},
+			}).catch((err) => console.error(err));
+		});
+		dispatch(removeZone(index));
+	};
 
 	const renderGardenDetail = () => {
 		return (
 			<Block>
 				<ScrollView>
 					<Block flex column>
-						{TEST_GARDEN.map((item, index) => {
+						{zones.map((item, index) => {
 							if (index % 3 == 0) {
 								return (
 									<Block flex row>
 										<LandArea
-											data={TEST_GARDEN[index]}
-											focus={index == selectedArea.index}
+											data={{ humid: 10, temp: 10, ...zones[index] }}
+											focus={index == selectedZone.index}
+											onLongPress={() => {
+												Alert.alert(
+													"Remove zone",
+													"Do you want to permanently remove this zone?",
+													[
+														{
+															text: "Cancel",
+															style: "cancel",
+														},
+														{
+															text: "OK",
+															onPress: () => handleRemoveZone(index),
+														},
+													]
+												);
+											}}
 											onPress={() =>
-												selectedArea.index == index
-													? setSelectedArea(-1)
-													: setSelectedArea({
-															index: index,
-															...TEST_GARDEN[index],
-													  })
+												selectedZone._id == index
+													? dispatch(setSelectedZone(-1))
+													: dispatch(
+															setSelectedZone({
+																index: index,
+																humid: 10,
+																temp: 10,
+																...zones[index],
+															})
+													  )
 											}
 										/>
-										{index + 1 < TEST_GARDEN.length && (
+										{index + 1 < zones.length && (
 											<LandArea
-												data={TEST_GARDEN[index + 1]}
-												focus={index + 1 == selectedArea.index}
+												data={zones[index + 1]}
+												focus={index + 1 == selectedZone.index}
+												onLongPress={() => {
+													Alert.alert(
+														"Remove zone",
+														"Do you want to permanently remove this zone?",
+														[
+															{
+																text: "Cancel",
+																style: "cancel",
+															},
+															{
+																text: "OK",
+																onPress: () => handleRemoveZone(index + 1),
+															},
+														]
+													);
+												}}
 												onPress={() =>
-													selectedArea.index == index + 1
-														? setSelectedArea(-1)
-														: setSelectedArea({
-																index: index + 1,
-																...TEST_GARDEN[index + 1],
-														  })
+													selectedZone.index == index + 1
+														? dispatch(setSelectedZone(-1))
+														: dispatch(
+																setSelectedZone({
+																	index: index + 1,
+																	humid: 10,
+																	temp: 10,
+																	...zones[index + 1],
+																})
+														  )
 												}
 											/>
 										)}
-										{index + 2 < TEST_GARDEN.length && (
+										{index + 2 < zones.length && (
 											<LandArea
-												data={TEST_GARDEN[index + 2]}
-												focus={index + 2 == selectedArea.index}
+												data={zones[index + 2]}
+												focus={index + 2 == selectedZone.index}
+												onLongPress={() => {
+													Alert.alert(
+														"Remove zone",
+														"Do you want to permanently remove this zone?",
+														[
+															{
+																text: "Cancel",
+																style: "cancel",
+															},
+															{
+																text: "OK",
+																onPress: () => handleRemoveZone(index + 2),
+															},
+														]
+													);
+												}}
 												onPress={() =>
-													selectedArea.index == index + 2
-														? setSelectedArea(-1)
-														: setSelectedArea({
-																index: index + 2,
-																...TEST_GARDEN[index + 2],
-														  })
+													selectedZone.index == index + 2
+														? dispatch(setSelectedZone(-1))
+														: dispatch(
+																setSelectedZone({
+																	index: index + 2,
+																	humid: 10,
+																	temp: 10,
+																	...zones[index + 2],
+																})
+														  )
 												}
 											/>
 										)}
@@ -144,47 +240,144 @@ export default function GardenDetail(props) {
 								);
 							}
 						})}
+						{/* {availableDevices.map((item) => {
+							if (index % 3 == 0) {
+								return (
+									<Block flex row>
+										<LandArea
+											data={{ humid: 10, temp: 10, ...zones[index] }}
+											focus={index == selectedZone.index}
+											onPress={() => {}}
+										/>
+										{index + 1 < zones.length && (
+											<LandArea
+												data={zones[index + 1]}
+												focus={index + 1 == selectedZone.index}
+												onPress={() => {}}
+											/>
+										)}
+										{index + 2 < zones.length && (
+											<LandArea
+												data={zones[index + 2]}
+												focus={index + 2 == selectedZone.index}
+												onPress={() => {}}
+											/>
+										)}
+									</Block>
+								);
+							}
+						})} */}
 					</Block>
+					<Text
+						style={styles.add}
+						onPress={
+							// navigation.navigate("Create zone");
+							toggleModal
+						}
+					>
+						Add zone
+					</Text>
+					<Modal
+						isVisible={isModalVisible}
+						style={{
+							backgroundColor: "white",
+							width: "90%",
+							padding: 20,
+							marginLeft: "auto",
+							marginRight: "auto",
+						}}
+					>
+						<View style={{ flex: 1 }}>
+							<Text>Hello!</Text>
+							<Input
+								rounded
+								placeholder="Plant"
+								style={styles.input}
+								onChangeText={(text) => {
+									setCreateForm({ ...createForm, plant: text });
+								}}
+							/>
+							<Block
+								safe
+								row
+								space="between"
+								style={{ flexWrap: "wrap", marginTop: 10 }}
+							>
+								<Text>Device (MAC Address):</Text>
+								<RNPickerSelect
+									style={{ color: "black" }}
+									onValueChange={(value) =>
+										setCreateForm({ ...createForm, deviceId: value })
+									}
+									items={availableDevices.map((item) => {
+										return { label: item.macAddress, value: item._id };
+									})}
+								/>
+							</Block>
+							{/* <Button title="Hide modal"  /> */}
+							<Block
+								safe
+								row
+								space="around"
+								style={{ flexWrap: "wrap", marginTop: 10 }}
+							>
+								<Button
+									onPress={() => {
+										// console.log("confirm");
+										handleAddZone();
+									}}
+									color="#77DD77"
+									style={{ padding: 0 }}
+								>
+									Confirm
+								</Button>
+								<Button onPress={toggleModal} color="#FAA0A0">
+									Cancel
+								</Button>
+							</Block>
+						</View>
+					</Modal>
 				</ScrollView>
 			</Block>
 		);
 	};
 
 	const renderOptions = () => {
+		const dispatch = useDispatch();
 		return (
 			<BottomSheet
-				show={selectedArea.index != -1}
+				show={selectedZone.index != -1}
 				height={290}
-				onOuterClick={() => setSelectedArea({ index: -1 })}
+				onOuterClick={() => dispatch(setSelectedZone({ index: -1 }))}
 			>
 				<Block fluid safe>
-					<ScrollView showsVerticalScrollIndicator={false}>
-						<Block row space="between" style={{ padding: theme.SIZES.BASE }}>
-							<Block middle>
-								<Text bold size={16} style={{ marginBottom: 8 }}>
-									{selectedArea.humid}%
-								</Text>
-								<Text muted size={16}>
-									Humidity
-								</Text>
-							</Block>
-							<Block middle>
-								<Text bold size={16} style={{ marginBottom: 8 }}>
-									{selectedArea.temp}℃
-								</Text>
-								<Text muted size={16}>
-									Temperature
-								</Text>
-							</Block>
-							<Block middle>
-								<Text bold size={16} style={{ marginBottom: 8 }}>
-									{selectedArea.index}
-								</Text>
-								<Text muted size={16}>
-									Area
-								</Text>
-							</Block>
+					<Block row space="between" style={{ padding: theme.SIZES.BASE }}>
+						<Block middle>
+							<Text bold size={16} style={{ marginBottom: 8 }}>
+								{selectedZone.humid}%
+							</Text>
+							<Text muted size={16}>
+								Humidity
+							</Text>
 						</Block>
+						<Block middle>
+							<Text bold size={16} style={{ marginBottom: 8 }}>
+								{selectedZone.temp}℃
+							</Text>
+							<Text muted size={16}>
+								Temperature
+							</Text>
+						</Block>
+						<Block middle>
+							<Text bold size={16} style={{ marginBottom: 8 }}>
+								{selectedZone.index}
+							</Text>
+							<Text muted size={16}>
+								Area
+							</Text>
+						</Block>
+					</Block>
+					<ScrollView showsVerticalScrollIndicator={false}>
 						<Block
 							row
 							space="between"
@@ -195,12 +388,20 @@ export default function GardenDetail(props) {
 								size={16}
 								color={theme.COLORS.PRIMARY}
 								onPress={() =>
-									navigation.navigate("Garden Configuration", selectedArea)
+									navigation.navigate("Garden Configuration", selectedZone)
 								}
 							>
 								View All
 							</Text>
 						</Block>
+						{/* <Button
+							onPress={() => {
+								dispatch(increment());
+							}}
+						>
+							hehehe
+						</Button>
+						<Text>{count}</Text> */}
 						<Block
 							style={{ paddingBottom: -HeaderHeight * 2, marginBottom: 10 }}
 						>
@@ -210,19 +411,33 @@ export default function GardenDetail(props) {
 								style={{ flexWrap: "wrap", marginBottom: 10 }}
 							>
 								<Text size={16} style={{ marginBottom: theme.SIZES.BASE / 2 }}>
-									Watering Schedule
+									Watering Pump
 								</Text>
 								<Switch
-									value={selectedArea.isWateringScheduleOn}
-									onValueChange={() =>
-										setSelectedArea((prev) => {
-											return {
-												...prev,
-												isWateringScheduleOn:
-													!selectedArea.isWateringScheduleOn,
-											};
-										})
-									}
+									value={selectedZone.isWatering}
+									onValueChange={() => {
+										retrieveData("jwt").then((jwt) => {
+											fetch(
+												`http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone/65977ba61d50b2d508da3875/water?turn=${
+													selectedZone.isWatering ? "off" : "on"
+												}`,
+												{
+													method: "POST",
+													headers: {
+														Accept: "application/json",
+														authorization: "Bearer " + jwt,
+														"Content-Type": "application/json",
+													},
+												}
+											).catch((err) => console.error(err));
+										});
+										dispatch(
+											setSelectedZone({
+												...selectedZone,
+												isWatering: !selectedZone.isWatering,
+											})
+										);
+									}}
 								/>
 							</Block>
 							<Block
@@ -231,18 +446,33 @@ export default function GardenDetail(props) {
 								style={{ flexWrap: "wrap", marginBottom: 10 }}
 							>
 								<Text size={16} style={{ marginBottom: theme.SIZES.BASE / 2 }}>
-									Light Schedule
+									Light
 								</Text>
 								<Switch
-									value={selectedArea.isLightScheduleOn}
-									onValueChange={() =>
-										setSelectedArea((prev) => {
-											return {
-												...prev,
-												isLightScheduleOn: !selectedArea.isLightScheduleOn,
-											};
-										})
-									}
+									value={selectedZone.isLightOn}
+									onValueChange={() => {
+										retrieveData("jwt").then((jwt) => {
+											fetch(
+												`http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone/65977ba61d50b2d508da3875/light?turn=${
+													selectedZone.isLightOn ? "off" : "on"
+												}`,
+												{
+													method: "POST",
+													headers: {
+														Accept: "application/json",
+														authorization: "Bearer " + jwt,
+														"Content-Type": "application/json",
+													},
+												}
+											).catch((err) => console.error(err));
+										});
+										dispatch(
+											setSelectedZone({
+												...selectedZone,
+												isWatering: !selectedZone.isWatering,
+											})
+										);
+									}}
 								/>
 							</Block>
 						</Block>
@@ -268,7 +498,7 @@ export default function GardenDetail(props) {
 			</Block>
 			{/* <Button title="Back" /> */}
 			<Block flex>{renderGardenDetail()}</Block>
-			{selectedArea.index >= 0 && renderOptions()}
+			{selectedZone.index >= 0 && renderOptions()}
 		</Block>
 	);
 }
@@ -285,6 +515,13 @@ const styles = StyleSheet.create({
 	profileContainer: {
 		width: width,
 		height: height / 2,
+	},
+	add: {
+		// marginTop: -theme.SIZES.BASE * 7,
+		marginRight: theme.SIZES.BASE / 2,
+		textAlign: "right",
+		// color: "primary",
+		textDecorationLine: "underline",
 	},
 	profileDetails: {
 		paddingTop: theme.SIZES.BASE * 4,

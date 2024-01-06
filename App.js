@@ -18,9 +18,11 @@ import { NavigationContainer } from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
 import { Images, products, materialTheme } from "./constants/";
 import Screens from "./navigation/Screens";
+import { Provider } from "react-redux";
 
 // Before rendering any navigation stack
 import { enableScreens } from "react-native-screens";
+import store from "./redux/store";
 enableScreens();
 
 // cache app images
@@ -78,12 +80,14 @@ export default function App() {
 
 	return (
 		<NavigationContainer onReady={onLayoutRootView}>
-			<GalioProvider theme={materialTheme}>
-				<Block flex>
-					{Platform.OS === "ios" && <StatusBar barStyle="default" />}
-					<Screens />
-				</Block>
-			</GalioProvider>
+			<Provider store={store}>
+				<GalioProvider theme={materialTheme}>
+					<Block flex>
+						{Platform.OS === "ios" && <StatusBar barStyle="default" />}
+						<Screens />
+					</Block>
+				</GalioProvider>
+			</Provider>
 		</NavigationContainer>
 	);
 }
