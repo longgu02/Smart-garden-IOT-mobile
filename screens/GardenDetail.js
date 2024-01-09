@@ -25,9 +25,11 @@ import {
 	fetchZones,
 	removeZone,
 	setSelectedZone,
+	updateZoneSensorData,
 } from "../redux/features/gardenSlice";
 import RNPickerSelect from "react-native-picker-select";
 import Modal from "react-native-modal";
+import EventSource from "react-native-sse";
 const thumbMeasure = (width - 48 - 32) / 3;
 
 export default function GardenDetail(props) {
@@ -44,6 +46,47 @@ export default function GardenDetail(props) {
 	const toggleModal = () => {
 		setModalVisible(!isModalVisible);
 	};
+
+	useEffect(() => {
+		retrieveData("jwt").then((jwt) => {
+			const url = new URL(`http://${ipAddress}:3000/garden/sse`);
+			// url.searchParams.append("topic", "/book/{bookId}");
+			const es = new EventSource(url, {
+				headers: {
+					Authorization: {
+						toString: function () {
+							return "Bearer " + jwt;
+						},
+					},
+				},
+			});
+
+			const listener = (event) => {
+				console.log(event);
+				if (event.type === "open") {
+					console.log("Open SSE connection.");
+				} else if (event.type === "message") {
+					const payload = JSON.parse(event.data);
+					console.log("data21", payload);
+					// setBooks((prevBooks) => [...prevBooks, book]);
+					dispatch(updateZoneSensorData(payload));
+					// console.log(`Received book ${book.title}, ISBN: ${book.isbn}`);
+				} else if (event.type === "error") {
+					console.error("Connection error:", event.message);
+				} else if (event.type === "exception") {
+					console.error("Error:", event.message, event.error);
+				}
+			};
+			es.addEventListener("open", listener);
+			es.addEventListener("message", listener);
+			es.addEventListener("moisture", listener);
+			es.addEventListener("error", listener);
+			return () => {
+				es.removeAllEventListeners();
+				es.close();
+			};
+		});
+	}, []);
 
 	const handleAddZone = () => {
 		retrieveData("jwt")
@@ -138,7 +181,7 @@ export default function GardenDetail(props) {
 								return (
 									<Block flex row key={item}>
 										<LandArea
-											data={{ humid: 10, temp: 10, ...zones[index] }}
+											data={zones[index]}
 											focus={index == selectedZone.index}
 											onLongPress={() => {
 												Alert.alert(
@@ -354,7 +397,10 @@ export default function GardenDetail(props) {
 					<Block row space="between" style={{ padding: theme.SIZES.BASE }}>
 						<Block middle>
 							<Text bold size={16} style={{ marginBottom: 8 }}>
-								{selectedZone.humid}%
+								{selectedZone.humid
+									? Number(selectedZone.humid).toFixed(2)
+									: "--.--"}
+								%
 							</Text>
 							<Text muted size={16}>
 								Humidity
@@ -362,7 +408,10 @@ export default function GardenDetail(props) {
 						</Block>
 						<Block middle>
 							<Text bold size={16} style={{ marginBottom: 8 }}>
-								{selectedZone.temp}℃
+								{selectedZone.temp
+									? Number(selectedZone.temp).toFixed(2)
+									: "--.--"}
+								℃
 							</Text>
 							<Text muted size={16}>
 								Temperature

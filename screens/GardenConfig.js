@@ -533,11 +533,20 @@ export default function GardenConfig(props) {
 						Humidity
 					</Text>
 				</Block>
-				<Text size={18}>Current Index: 10</Text>
+				<Text size={18}>
+					Current Moisture:{" "}
+					{selectedZone.humid ? Number(selectedZone.humid).toFixed(2) : "--.--"}
+					%
+				</Text>
 				<Slider
+					disabled
 					maximumValue={maxHumid < minHumid ? minHumid : maxHumid}
 					minimumValue={maxHumid < minHumid ? maxHumid : minHumid}
-					value={10 < minHumid ? minHumid : 10}
+					value={
+						selectedZone.humid < minHumid || selectedZone.humid == undefined
+							? minHumid
+							: selectedZone.humid
+					}
 					onSlidingcomplete={() => {}}
 				/>
 				<Block
@@ -580,11 +589,19 @@ export default function GardenConfig(props) {
 				<Text size={18} bold style={{ marginBottom: theme.SIZES.BASE / 2 }}>
 					Temperature
 				</Text>
-				<Text size={18}>Current Index: 10</Text>
+				<Text size={18}>
+					Current Temperature:{" "}
+					{selectedZone.temp ? Number(selectedZone.temp).toFixed(2) : "--.--"}℃
+				</Text>
 				<Slider
+					disabled
 					maximumValue={maxTemp < minTemp ? minTemp : maxTemp}
 					minimumValue={maxTemp < minTemp ? maxTemp : minTemp}
-					value={10 < minTemp ? minTemp : 10}
+					value={
+						selectedZone.temp < minTemp || selectedZone.temp == undefined
+							? minTemp
+							: selectedZone.temp
+					}
 					onSlidingcomplete={() => {}}
 				/>
 				<Block

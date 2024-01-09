@@ -157,11 +157,11 @@ function GardenStack(props) {
 			}}
 		>
 			<Stack.Screen
-				name="Garden"
+				name="My Garden"
 				component={GardenScreen}
 				options={{
 					header: ({ navigation, scene }) => (
-						<Header title="Garden" navigation={navigation} scene={scene} />
+						<Header title="My Garden" navigation={navigation} scene={scene} />
 					),
 				}}
 			/>
@@ -286,7 +286,7 @@ function AppStack(props) {
 				}}
 			/> */}
 			<Drawer.Screen
-				name="Garden stack"
+				name="Garden"
 				component={GardenStack}
 				options={{
 					drawerIcon: ({ focused }) => (

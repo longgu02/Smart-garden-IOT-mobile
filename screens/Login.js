@@ -41,7 +41,7 @@ export default function Login(props) {
 				})
 					.then((res) => res.json())
 					.then((data) => {
-						console.log(data);
+						console.log("hehehe", data);
 						dispatch(updateGardenId(data._id));
 					})
 					.catch((err) => console.error(err));

@@ -45,11 +45,13 @@ function LandArea(props) {
 								size={18}
 								color="#779ECB"
 							/>
-							<Text>{data.humid}%</Text>
+							<Text>
+								{data.humid ? Number(data.humid).toFixed(2) : "--.--"}%
+							</Text>
 						</Block>
 						<Block row>
 							<FontAwesome5 name="temperature-high" size={18} color="#c23b22" />
-							<Text>{data.temp}℃</Text>
+							<Text>{data.temp ? Number(data.temp).toFixed(2) : "--.--"}℃</Text>
 						</Block>
 					</Block>
 					<Block row>

@@ -9,49 +9,13 @@ import products from "../constants/products";
 import GardenCard from "../components/GardenCard";
 import { retrieveData } from "../services/asyncStorage";
 import { ipAddress } from "../services/client";
+import { useDispatch } from "react-redux";
+import { updateZoneSensorData } from "../redux/features/gardenSlice";
 
 export default function Garden(props) {
 	const { navigation } = props;
+	const dispatch = useDispatch();
 	let es;
-	// useEffect(() => {
-	// 	const url = new URL(`http://${ipAddress}:3000/garden/sse`);
-	// 	// url.searchParams.append("topic", "/book/{bookId}");
-	// 	retrieveData("jwt").then((jwt) => {
-	// 		const es = new EventSource(url, {
-	// 			headers: {
-	// 				Authorization: {
-	// 					toString: function () {
-	// 						return "Bearer " + jwt;
-	// 					},
-	// 				},
-	// 			},
-	// 		});
-
-	// 		const listener = (event) => {
-	// 			if (event.type === "open") {
-	// 				console.log("Open SSE connection.");
-	// 			} else if (event.type === "message") {
-	// 				console.log(event.data);
-	// 				// setBooks((prevBooks) => [...prevBooks, book]);
-
-	// 				// console.log(`Received book ${book.title}, ISBN: ${book.isbn}`);
-	// 			} else if (event.type === "error") {
-	// 				console.error("Connection error:", event.message);
-	// 			} else if (event.type === "exception") {
-	// 				console.error("Error:", event.message, event.error);
-	// 			}
-	// 		};
-
-	// 		es.addEventListener("open", listener);
-	// 		es.addEventListener("message", listener);
-	// 		es.addEventListener("error", listener);
-	// 	});
-
-	// 	return () => {
-	// 		es.removeAllEventListeners();
-	// 		es.close();
-	// 	};
-	// }, []);
 
 	const renderSearch = () => {
 		const iconCamera = (

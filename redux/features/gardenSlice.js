@@ -30,6 +30,20 @@ export const gardenSlice = createSlice({
 		updateGardenId: (state, action) => {
 			state.gardenId = action.payload;
 		},
+		updateZoneSensorData: (state, action) => {
+			const index = state.zones.indexOf(
+				(item) => item._id == action.payload.id
+			);
+			console.log("zones", state.zones);
+			console.log("payload", action.payload.humidity);
+			let matched = state.zones.find((item) => item._id == action.payload.id);
+			matched.humid = action.payload.humidity;
+			matched.temp = action.payload.temperature;
+			console.log(matched);
+			console.log(index);
+			// state.zones[index]["humid"] = action.payload.humidity;
+			// state.zones[index]["temp"] = action.payload.temperature;
+		},
 		// decrement: (state) => {
 		// 	state.value -= 1;
 		// 	console.log("dec");
@@ -48,6 +62,7 @@ export const {
 	updateZone,
 	removeZone,
 	updateGardenId,
+	updateZoneSensorData,
 } = gardenSlice.actions;
 
 export default gardenSlice.reducer;
