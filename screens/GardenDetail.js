@@ -18,6 +18,7 @@ import { Switch } from "react-native-gesture-handler";
 import { BottomSheet } from "../components/BottomSheet";
 import { useSelector, useDispatch } from "react-redux";
 import { increment } from "../redux/features/counterSlice";
+import { ipAddress } from "../services/client";
 import { retrieveData } from "../services/asyncStorage";
 import {
 	fetchAvailableDevices,
@@ -33,7 +34,7 @@ export default function GardenDetail(props) {
 	const { navigation } = props;
 	// const [selectedArea, setSelectedZone] = useState({ index: -1 });
 	const dispatch = useDispatch();
-	const { selectedZone, zones, availableDevices } = useSelector(
+	const { selectedZone, zones, availableDevices, gardenId } = useSelector(
 		(state) => state.garden
 	);
 	const [areaData, setAreaData] = useState([]);
@@ -48,11 +49,11 @@ export default function GardenDetail(props) {
 		retrieveData("jwt")
 			.then((jwt) => {
 				const payload = {
-					gardenId: "65977743884feab5659ece12",
+					gardenId: gardenId,
 					...createForm,
 				};
 				console.log(payload);
-				fetch("http://192.168.2.6:3000/garden/zone", {
+				fetch(`http://${ipAddress}:3000/garden/zone`, {
 					method: "POST",
 					headers: {
 						Accept: "application/json",
@@ -74,7 +75,7 @@ export default function GardenDetail(props) {
 
 	useEffect(() => {
 		retrieveData("jwt").then((jwt) => {
-			fetch("http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone", {
+			fetch(`http://${ipAddress}:3000/garden/${gardenId}/zone`, {
 				method: "GET",
 				headers: {
 					Accept: "application/json",
@@ -89,7 +90,7 @@ export default function GardenDetail(props) {
 					console.log(data);
 				})
 				.catch((err) => console.error(err));
-			fetch("http://192.168.2.6:3000/garden/65977743884feab5659ece12/device", {
+			fetch(`http://${ipAddress}:3000/garden/${gardenId}/device`, {
 				method: "GET",
 				headers: {
 					Accept: "application/json",
@@ -113,9 +114,9 @@ export default function GardenDetail(props) {
 	}, [navigation]);
 
 	const handleRemoveZone = (index) => {
-		console.log(`http://192.168.2.6:3000/garden/zone/${zones[index]._id}`);
+		console.log(`http://${ipAddress}:3000/garden/zone/${zones[index]._id}`);
 		retrieveData("jwt").then((jwt) => {
-			fetch(`http://192.168.2.6:3000/garden/zone/${zones[index]._id}`, {
+			fetch(`http://${ipAddress}:3000/garden/zone/${zones[index]._id}`, {
 				method: "DELETE",
 				headers: {
 					Accept: "application/json",
@@ -135,7 +136,7 @@ export default function GardenDetail(props) {
 						{zones.map((item, index) => {
 							if (index % 3 == 0) {
 								return (
-									<Block flex row>
+									<Block flex row key={item}>
 										<LandArea
 											data={{ humid: 10, temp: 10, ...zones[index] }}
 											focus={index == selectedZone.index}
@@ -343,7 +344,6 @@ export default function GardenDetail(props) {
 	};
 
 	const renderOptions = () => {
-		const dispatch = useDispatch();
 		return (
 			<BottomSheet
 				show={selectedZone.index != -1}
@@ -418,9 +418,9 @@ export default function GardenDetail(props) {
 									onValueChange={() => {
 										retrieveData("jwt").then((jwt) => {
 											fetch(
-												`http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone/65977ba61d50b2d508da3875/water?turn=${
-													selectedZone.isWatering ? "off" : "on"
-												}`,
+												`http://${ipAddress}:3000/garden/${gardenId}/zone/${
+													selectedZone._id
+												}/water?turn=${selectedZone.isWatering ? "off" : "on"}`,
 												{
 													method: "POST",
 													headers: {
@@ -453,9 +453,9 @@ export default function GardenDetail(props) {
 									onValueChange={() => {
 										retrieveData("jwt").then((jwt) => {
 											fetch(
-												`http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone/65977ba61d50b2d508da3875/light?turn=${
-													selectedZone.isLightOn ? "off" : "on"
-												}`,
+												`http://${ipAddress}:3000/garden/${gardenId}/zone/${
+													selectedZone._id
+												}/light?turn=${selectedZone.isLightOn ? "off" : "on"}`,
 												{
 													method: "POST",
 													headers: {
@@ -469,7 +469,7 @@ export default function GardenDetail(props) {
 										dispatch(
 											setSelectedZone({
 												...selectedZone,
-												isWatering: !selectedZone.isWatering,
+												isLightOn: !selectedZone.isLightOn,
 											})
 										);
 									}}

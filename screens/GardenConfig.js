@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, Dimensions, ScrollView, View } from "react-native";
 import { Button, Block, Text, Input, theme, Slider } from "galio-framework";
 import { Icon, LandArea, Product } from "../components/";
@@ -6,32 +6,125 @@ import { HeaderHeight } from "../constants/utils";
 import { Images, materialTheme } from "../constants";
 import { Ionicons } from "@expo/vector-icons";
 const { width, height } = Dimensions.get("screen");
-import { Switch } from "react-native-gesture-handler";
+import { Switch, TextInput } from "react-native-gesture-handler";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 import { retrieveData } from "../services/asyncStorage";
 import { useDispatch, useSelector } from "react-redux";
+import { ipAddress } from "../services/client";
 import { setSelectedZone, updateZone } from "../redux/features/gardenSlice";
 const thumbMeasure = (width - 48 - 32) / 3;
 
 export default function GardenConfig(props) {
 	const { route, navigation } = props;
-	const { selectedZone } = useSelector((state) => state.garden);
+	const { selectedZone, gardenId } = useSelector((state) => state.garden);
 	const [isAutoLight, setAutoLight] = useState(selectedZone.isAutoLight);
 	const [isAutoWater, setAutoWater] = useState(selectedZone.isAutoWater);
 	const [isOpenLightDatePicker, setOpenLightDatePicker] = useState(false);
 	const [isOpenWaterDatePicker, setOpenWaterDatePicker] = useState(false);
 	const [lightDate, setLightDate] = useState(new Date());
+	const [lightOnTime, setLightOnTime] = useState(20);
 	const [waterDate, setWaterDate] = useState(new Date());
+	const [waterAmount, setWaterAmount] = useState(20);
+	const [maxHumid, setMaxHumid] = useState(selectedZone.maxHumidity);
+	const [minHumid, setMinHumid] = useState(selectedZone.minHumidity);
+	const [minTemp, setMinTemp] = useState(selectedZone.minTemperature);
+	const [maxTemp, setMaxTemp] = useState(selectedZone.maxTemperature);
 	const dispatch = useDispatch();
+	const lightTimeInput = useRef(null);
+	const [text, setText] = useState("");
+
+	const handleSetThreshold = (type, payload) => {
+		retrieveData("jwt").then((jwt) => {
+			if (type == "humid") {
+				fetch(
+					`http://${ipAddress}:3000/garden/zone/${selectedZone._id}/humid-threshold`,
+					{
+						method: "POST",
+						headers: {
+							Accept: "application/json",
+							authorization: "Bearer " + jwt,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(payload),
+					}
+				)
+					// .then((res) => console.log(res))
+					.catch((err) => console.error(err));
+			} else if (type == "temp") {
+				fetch(
+					`http://${ipAddress}:3000/garden/zone/${selectedZone._id}/temp-threshold`,
+					{
+						method: "POST",
+						headers: {
+							Accept: "application/json",
+							authorization: "Bearer " + jwt,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(payload),
+					}
+				)
+					// .then((res) => console.log(res))
+					.catch((err) => console.error(err));
+			}
+		});
+	};
+
+	const handleSetTime = (type) => {
+		retrieveData("jwt")
+			.then((jwt) => {
+				if (type == "light") {
+					// console.log({
+					// 	zoneId: selectedZone._id,
+					// 	lightStartTime: lightDate,
+					// 	lightTime: lightOnTime,
+					// });
+					fetch(`http://${ipAddress}:3000/task/light-schedule`, {
+						method: "POST",
+						headers: {
+							Accept: "application/json",
+							authorization: "Bearer " + jwt,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							zoneId: selectedZone._id,
+							lightStartTime: lightDate,
+							lightTime: lightOnTime,
+						}),
+					})
+						// .then((res) => console.log(res))
+						.catch((err) => console.error(err));
+				} else if (type == "water") {
+					console.log({
+						zoneId: selectedZone._id,
+						irrigationStartTime: waterDate,
+						waterAmount: waterAmount,
+					});
+					fetch(`http://${ipAddress}:3000/task/irrigation-schedule`, {
+						method: "POST",
+						headers: {
+							Accept: "application/json",
+							authorization: "Bearer " + jwt,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							zoneId: selectedZone._id,
+							irrigationStartTime: waterDate,
+							waterAmount: waterAmount,
+						}),
+					}).catch((err) => console.error(err));
+				}
+			})
+			.catch((err) => console.error(err));
+	};
 
 	const handleScheduleSwitch = (type) => {
 		retrieveData("jwt")
 			.then((jwt) => {
 				if (type == "water") {
 					fetch(
-						`http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone/6598fb895793d345eaaaf566/water-schedule?turn=${
-							selectedZone.isAutoWater ? "off" : "on"
-						}`,
+						`http://${ipAddress}:3000/garden/${gardenId}/zone/${
+							selectedZone._id
+						}/water-schedule?turn=${selectedZone.isAutoWater ? "off" : "on"}`,
 						{
 							method: "POST",
 							headers: {
@@ -43,9 +136,9 @@ export default function GardenConfig(props) {
 					).catch((err) => console.error(err));
 				} else if (type == "light") {
 					fetch(
-						`http://192.168.2.6:3000/garden/65977743884feab5659ece12/zone/6598fb895793d345eaaaf566/light-schedule?turn=${
-							selectedZone.isAutoLight ? "off" : "on"
-						}`,
+						`http://${ipAddress}:3000/garden/${gardenId}/zone/${
+							selectedZone._id
+						}/light-schedule?turn=${selectedZone.isAutoLight ? "off" : "on"}`,
 						{
 							method: "POST",
 							headers: {
@@ -117,6 +210,9 @@ export default function GardenConfig(props) {
 						onValueChange={() => {
 							handleScheduleSwitch("light");
 							console.log(selectedZone);
+							if (lightDate && lightOnTime) {
+								handleSetTime("light");
+							}
 							dispatch(
 								updateZone({
 									...route.params,
@@ -151,7 +247,6 @@ export default function GardenConfig(props) {
 							}`}
 							color="black"
 							style={{
-								borderRadius: 3,
 								borderColor: materialTheme.COLORS.INPUT,
 							}}
 							iconContent={
@@ -165,6 +260,39 @@ export default function GardenConfig(props) {
 							}
 						/>
 					</Block>
+					<Text bold size={16} style={styles.title}>
+						Light On Time:
+					</Text>
+					<Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
+						{/* <TextInput
+							style={{ height: 40 }}
+							placeholder="Type here to translate!"
+							onChangeText={(newText) => setText(newText)}
+							defaultValue={text}
+						/> */}
+						<Input
+							placeholder="Light On Time"
+							color={theme.COLORS.THEME}
+							type="number-pad"
+							// value={lightOnTime}
+							defaultValue={lightOnTime.toString()}
+							// ref={lightTimeInput}
+							// onChangeText={() => {
+							// 	setLightOnTime();
+							// }}
+							// showSoftInputOnFocus={false}
+							onEndEditing={(a) => {
+								console.log(a.nativeEvent.text);
+								setLightOnTime(a.nativeEvent.text);
+							}}
+							// onChangeText={(text) => {
+							// 	setLightOnTime(text);
+							// 	lightTimeInput.current.focus();
+							// }}
+							// style={{ borderColor: theme.COLORS.THEME, width: 70 }}
+							placeholderTextColor={theme.COLORS.THEME}
+						/>
+					</Block>
 				</Block>
 				{isOpenLightDatePicker && (
 					<RNDateTimePicker
@@ -172,7 +300,21 @@ export default function GardenConfig(props) {
 						value={lightDate || new Date()}
 						onChange={(date) => {
 							console.log(date);
-							setLightDate(new Date(date.nativeEvent.timestamp));
+							if (date.type == "set") {
+								setLightDate(new Date(date.nativeEvent.timestamp));
+								dispatch(
+									updateZone({
+										...route.params,
+										isAutoLight: false,
+									})
+								);
+								dispatch(
+									setSelectedZone({
+										...selectedZone,
+										isAutoLight: false,
+									})
+								);
+							}
 							Platform.OS === "android" && setOpenLightDatePicker(false);
 						}}
 						display="spinner"
@@ -184,6 +326,10 @@ export default function GardenConfig(props) {
 						value={selectedZone.isAutoWater}
 						onValueChange={() => {
 							handleScheduleSwitch("water");
+							handleSetTime("water");
+							if (waterDate && waterAmount) {
+								handleSetTime("water");
+							}
 							dispatch(
 								updateZone({
 									...route.params,
@@ -217,7 +363,6 @@ export default function GardenConfig(props) {
 							}`}
 							color="black"
 							style={{
-								borderRadius: 3,
 								borderColor: materialTheme.COLORS.INPUT,
 							}}
 							iconContent={
@@ -231,6 +376,32 @@ export default function GardenConfig(props) {
 							}
 						/>
 					</Block>
+					<Text bold size={16} style={styles.title}>
+						Water Amount:
+					</Text>
+					<Block style={{ paddingHorizontal: theme.SIZES.BASE }}>
+						<Input
+							placeholder="Water Amount"
+							color={theme.COLORS.THEME}
+							// onChangeText={(text) => {
+							// 	setWaterAmount(text);
+							// }}
+							// onChange={(e) =>}
+							// style={{ borderColor: theme.COLORS.THEME, width: 70 }}
+							defaultValue={waterAmount.toString()}
+							type="number-pad"
+							// ref={lightTimeInput}
+							// onChangeText={() => {
+							// 	setLightOnTime();
+							// }}
+							// showSoftInputOnFocus={false}
+							onEndEditing={(a) => {
+								console.log(a.nativeEvent.text);
+								setWaterAmount(a.nativeEvent.text);
+							}}
+							placeholderTextColor={theme.COLORS.THEME}
+						/>
+					</Block>
 				</Block>
 				{isOpenWaterDatePicker && (
 					<RNDateTimePicker
@@ -238,7 +409,21 @@ export default function GardenConfig(props) {
 						value={waterDate || new Date()}
 						onChange={(date) => {
 							console.log(date);
-							setWaterDate(new Date(date.nativeEvent.timestamp));
+							if (date.type == "set") {
+								setWaterDate(new Date(date.nativeEvent.timestamp));
+								dispatch(
+									updateZone({
+										...route.params,
+										isAutoWater: false,
+									})
+								);
+								dispatch(
+									setSelectedZone({
+										...selectedZone,
+										isAutoWater: false,
+									})
+								);
+							}
 							Platform.OS === "android" && setOpenWaterDatePicker(false);
 						}}
 						display="spinner"
@@ -350,9 +535,9 @@ export default function GardenConfig(props) {
 				</Block>
 				<Text size={18}>Current Index: 10</Text>
 				<Slider
-					maximumValue={30}
-					minimumValue={0}
-					value={10}
+					maximumValue={maxHumid < minHumid ? minHumid : maxHumid}
+					minimumValue={maxHumid < minHumid ? maxHumid : minHumid}
+					value={10 < minHumid ? minHumid : 10}
 					onSlidingcomplete={() => {}}
 				/>
 				<Block
@@ -362,16 +547,33 @@ export default function GardenConfig(props) {
 					style={{ flexWrap: "wrap", marginBottom: 10 }}
 				>
 					<Input
-						placeholder="0"
+						// placeholder="0"
 						color={theme.COLORS.THEME}
 						type="number-pad"
-						style={{ borderColor: theme.COLORS.THEME, width: 70 }}
+						defaultValue={minHumid.toString()}
+						onEndEditing={(e) => {
+							setMinHumid(parseFloat(e.nativeEvent.text));
+							handleSetThreshold("humid", {
+								minHumidity: parseFloat(e.nativeEvent.text) || minHumid,
+								maxHumidity: maxHumid,
+							});
+						}}
+						style={{ width: 70 }}
 						placeholderTextColor={theme.COLORS.THEME}
 					/>
 					<Input
-						placeholder="30"
+						// placeholder="30"
 						color={theme.COLORS.THEME}
-						style={{ borderColor: theme.COLORS.THEME, width: 70 }}
+						type="number-pad"
+						defaultValue={maxHumid.toString()}
+						onEndEditing={(e) => {
+							setMaxHumid(parseFloat(e.nativeEvent.text));
+							handleSetThreshold("humid", {
+								minHumidity: minHumid,
+								maxHumidity: parseFloat(e.nativeEvent.text) || maxHumid,
+							});
+						}}
+						style={{ width: 70 }}
 						placeholderTextColor={theme.COLORS.THEME}
 					/>
 				</Block>
@@ -380,9 +582,9 @@ export default function GardenConfig(props) {
 				</Text>
 				<Text size={18}>Current Index: 10</Text>
 				<Slider
-					maximumValue={30}
-					minimumValue={0}
-					value={10}
+					maximumValue={maxTemp < minTemp ? minTemp : maxTemp}
+					minimumValue={maxTemp < minTemp ? maxTemp : minTemp}
+					value={10 < minTemp ? minTemp : 10}
 					onSlidingcomplete={() => {}}
 				/>
 				<Block
@@ -392,16 +594,33 @@ export default function GardenConfig(props) {
 					style={{ flexWrap: "wrap", marginBottom: 10 }}
 				>
 					<Input
-						placeholder="0"
+						// placeholder="0"
 						color={theme.COLORS.THEME}
 						type="number-pad"
-						style={{ borderColor: theme.COLORS.THEME, width: 70 }}
+						defaultValue={minTemp.toString()}
+						onEndEditing={(e) => {
+							setMinTemp(parseFloat(e.nativeEvent.text));
+							handleSetThreshold("temp", {
+								minTemperature: parseFloat(e.nativeEvent.text) || minTemp,
+								maxTemperature: maxTemp,
+							});
+						}}
+						style={{ width: 70 }}
 						placeholderTextColor={theme.COLORS.THEME}
 					/>
 					<Input
-						placeholder="30"
+						// placeholder="30"
 						color={theme.COLORS.THEME}
-						style={{ borderColor: theme.COLORS.THEME, width: 70 }}
+						type="number-pad"
+						defaultValue={maxTemp.toString()}
+						onEndEditing={(e) => {
+							setMaxTemp(parseFloat(e.nativeEvent.text));
+							handleSetThreshold("temp", {
+								minTemperature: minTemp,
+								maxTemperature: parseFloat(e.nativeEvent.text) || maxTemp,
+							});
+						}}
+						style={{ width: 70 }}
 						placeholderTextColor={theme.COLORS.THEME}
 					/>
 				</Block>

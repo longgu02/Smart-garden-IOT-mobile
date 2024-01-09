@@ -179,19 +179,6 @@ function GardenStack(props) {
 				}}
 			/>
 			<Stack.Screen
-				name="Create zone"
-				component={GardenDetailScreen}
-				options={{
-					header: ({ navigation, scene }) => (
-						<Header
-							title="Garden Detail"
-							navigation={navigation}
-							scene={scene}
-						/>
-					),
-				}}
-			/>
-			<Stack.Screen
 				name="Garden Configuration"
 				component={GardenConfigScreen}
 				options={{
@@ -238,9 +225,9 @@ function AppStack(props) {
 					fontWeight: "normal",
 				},
 			}}
-			initialRouteName="Home"
+			initialRouteName="Garden stack"
 		>
-			<Drawer.Screen
+			{/* <Drawer.Screen
 				name="Home"
 				component={HomeStack}
 				options={{
@@ -297,9 +284,9 @@ function AppStack(props) {
 						/>
 					),
 				}}
-			/>
+			/> */}
 			<Drawer.Screen
-				name="Garden"
+				name="Garden stack"
 				component={GardenStack}
 				options={{
 					drawerIcon: ({ focused }) => (
@@ -312,7 +299,7 @@ function AppStack(props) {
 					),
 				}}
 			/>
-			<Drawer.Screen
+			{/* <Drawer.Screen
 				name="Sign In"
 				component={ProScreen}
 				options={{
@@ -339,7 +326,7 @@ function AppStack(props) {
 						/>
 					),
 				}}
-			/>
+			/> */}
 		</Drawer.Navigator>
 	);
 }
@@ -360,7 +347,7 @@ export default function OnboardingStack(props) {
 				}}
 			/>
 			<Stack.Screen
-				name="Login"
+				name="Auth"
 				component={LoginStack}
 				option={{
 					headerTransparent: true,

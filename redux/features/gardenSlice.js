@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export const gardenSlice = createSlice({
-	name: "garden",
+	name: "Garden",
+	gardenId: "",
 	initialState: {
 		name: null,
 		zones: [],
@@ -26,6 +27,9 @@ export const gardenSlice = createSlice({
 		removeZone: (state, action) => {
 			state.zones.splice(action.payload, 1);
 		},
+		updateGardenId: (state, action) => {
+			state.gardenId = action.payload;
+		},
 		// decrement: (state) => {
 		// 	state.value -= 1;
 		// 	console.log("dec");
@@ -43,6 +47,7 @@ export const {
 	fetchZones,
 	updateZone,
 	removeZone,
+	updateGardenId,
 } = gardenSlice.actions;
 
 export default gardenSlice.reducer;

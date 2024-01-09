@@ -5,6 +5,8 @@ import {
 	StatusBar,
 	Dimensions,
 } from "react-native";
+import { ipAddress } from "../services/client";
+
 import { Block, Button, Text, theme } from "galio-framework";
 
 const { height, width } = Dimensions.get("screen");
@@ -54,7 +56,7 @@ export default class Onboarding extends React.Component {
 							<Button
 								shadowless
 								style={styles.button}
-								onPress={() => navigation.navigate("Login")}
+								onPress={() => navigation.navigate("Auth")}
 							>
 								GET STARTED
 							</Button>
