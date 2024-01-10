@@ -31,16 +31,23 @@ export const gardenSlice = createSlice({
 			state.gardenId = action.payload;
 		},
 		updateZoneSensorData: (state, action) => {
-			const index = state.zones.indexOf(
-				(item) => item._id == action.payload.id
-			);
-			console.log("zones", state.zones);
-			console.log("payload", action.payload.humidity);
+			console.log("pay1", action.payload);
+
 			let matched = state.zones.find((item) => item._id == action.payload.id);
 			matched.humid = action.payload.humidity;
 			matched.temp = action.payload.temperature;
-			console.log(matched);
-			console.log(index);
+			// state.zones[index]["humid"] = action.payload.humidity;
+			// state.zones[index]["temp"] = action.payload.temperature;
+		},
+		updatePumpLightStatus: (state, action) => {
+			console.log("pay2", action.payload);
+			let matched = state.zones.find((item) => item._id == action.payload.id);
+			if (action.payload.type == "water") {
+				matched.isWatering = action.payload.turn == "on" ? true : false;
+			} else if (action.payload.type == "light") {
+				matched.isLightOn = action.payload.turn == "on" ? true : false;
+			}
+			console.log("final", matched);
 			// state.zones[index]["humid"] = action.payload.humidity;
 			// state.zones[index]["temp"] = action.payload.temperature;
 		},
@@ -63,6 +70,7 @@ export const {
 	removeZone,
 	updateGardenId,
 	updateZoneSensorData,
+	updatePumpLightStatus,
 } = gardenSlice.actions;
 
 export default gardenSlice.reducer;

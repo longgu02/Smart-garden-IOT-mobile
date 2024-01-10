@@ -11,7 +11,7 @@
 
 */
 import React, { useState, useEffect, useCallback } from "react";
-import { Platform, StatusBar, Image } from "react-native";
+import { Platform, StatusBar, Image, Alert } from "react-native";
 import { Asset } from "expo-asset";
 import { Block, GalioProvider } from "galio-framework";
 import { NavigationContainer } from "@react-navigation/native";
@@ -19,10 +19,18 @@ import * as SplashScreen from "expo-splash-screen";
 import { Images, products, materialTheme } from "./constants/";
 import Screens from "./navigation/Screens";
 import { Provider } from "react-redux";
+import PushController from "./services/pushNoti";
+// for RN >= 0.63
+// in your entry file (eg. App.tsx)
 
+import { LogBox } from "react-native";
+// ignore warnings that start in a string that matchs any of
+// the ones in the array
+LogBox.ignoreLogs(["Require cycle:"]);
 // Before rendering any navigation stack
 import { enableScreens } from "react-native-screens";
 import store from "./redux/store";
+import { messaging } from "react-native-firebase";
 enableScreens();
 
 // cache app images
@@ -49,6 +57,16 @@ function cacheImages(images) {
 export default function App() {
 	const [appIsReady, setAppIsReady] = useState(false);
 
+	const requestUserPermission = async () => {
+		const authStatus = await messaging().requestPermission();
+		const enabled =
+			authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+			authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+		if (enabled) {
+			console.log("Authorization status: ", authStatus);
+		}
+	};
+
 	useEffect(() => {
 		async function prepare() {
 			try {
@@ -62,6 +80,41 @@ export default function App() {
 			}
 		}
 		prepare();
+	}, []);
+
+	useEffect(() => {
+		if (requestUserPermission()) {
+			messaging()
+				.getToken()
+				.then((token) => {
+					console.log(token);
+				});
+		} else {
+			console.log("Failed token status", authStatus);
+		}
+		messaging()
+			.getInitialNotification()
+			.then(async (remoteMessage) => {
+				if (remoteMessage) {
+					console.log(
+						"Notification caused app to open from quit state:",
+						remoteMessage.notification
+					);
+				}
+			});
+		messaging().onNotificationOpenedApp((remoteMessage) => {
+			console.log(
+				"Notification caused app to open from background state:",
+				remoteMessage.notification
+			);
+		});
+		messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+			console.log("Message handled in the background!", remoteMessage);
+		});
+		const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+			Alert.alert("A new FCM message arrived!", JSON.stringify(remoteMessage));
+		});
+		return unsubscribe;
 	}, []);
 
 	const _loadResourcesAsync = async () => {
@@ -88,6 +141,7 @@ export default function App() {
 					</Block>
 				</GalioProvider>
 			</Provider>
+			{/* <PushController /> */}
 		</NavigationContainer>
 	);
 }

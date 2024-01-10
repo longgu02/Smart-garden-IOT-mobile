@@ -25,6 +25,7 @@ import {
 	fetchZones,
 	removeZone,
 	setSelectedZone,
+	updatePumpLightStatus,
 	updateZoneSensorData,
 } from "../redux/features/gardenSlice";
 import RNPickerSelect from "react-native-picker-select";
@@ -49,9 +50,19 @@ export default function GardenDetail(props) {
 
 	useEffect(() => {
 		retrieveData("jwt").then((jwt) => {
-			const url = new URL(`http://${ipAddress}:3000/garden/sse`);
+			const url = new URL(`http://${ipAddress}:3000/garden/sensor-data`);
+			const pumpUrl = new URL(`http://${ipAddress}:3000/garden/sse`);
 			// url.searchParams.append("topic", "/book/{bookId}");
-			const es = new EventSource(url, {
+			const dataEs = new EventSource(url, {
+				headers: {
+					Authorization: {
+						toString: function () {
+							return "Bearer " + jwt;
+						},
+					},
+				},
+			});
+			const pumpEs = new EventSource(pumpUrl, {
 				headers: {
 					Authorization: {
 						toString: function () {
@@ -61,7 +72,23 @@ export default function GardenDetail(props) {
 				},
 			});
 
-			const listener = (event) => {
+			const pumpListener = (event) => {
+				console.log(event);
+				if (event.type === "open") {
+					console.log("Open SSE connection.");
+				} else if (event.type === "message") {
+					const payload = JSON.parse(event.data);
+
+					console.log("data21", payload);
+					dispatch(updatePumpLightStatus(payload));
+				} else if (event.type === "error") {
+					console.error("Connection error:", event.message);
+				} else if (event.type === "exception") {
+					console.error("Error:", event.message, event.error);
+				}
+			};
+
+			const dataListener = (event) => {
 				console.log(event);
 				if (event.type === "open") {
 					console.log("Open SSE connection.");
@@ -77,13 +104,18 @@ export default function GardenDetail(props) {
 					console.error("Error:", event.message, event.error);
 				}
 			};
-			es.addEventListener("open", listener);
-			es.addEventListener("message", listener);
-			es.addEventListener("moisture", listener);
-			es.addEventListener("error", listener);
+			dataEs.addEventListener("open", dataListener);
+			dataEs.addEventListener("message", dataListener);
+			dataEs.addEventListener("error", dataListener);
+
+			pumpEs.addEventListener("open", pumpListener);
+			pumpEs.addEventListener("message", pumpListener);
+			pumpEs.addEventListener("error", pumpListener);
 			return () => {
-				es.removeAllEventListeners();
-				es.close();
+				dataEs.removeAllEventListeners();
+				pumpEs.removeAllEventListeners();
+				dataEs.close();
+				pumpEs.close();
 			};
 		});
 	}, []);

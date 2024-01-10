@@ -63,7 +63,7 @@ function LandArea(props) {
 						<MaterialCommunityIcons
 							name="watering-can"
 							size={24}
-							color={data.isPumpOn ? "black" : "gray"}
+							color={data.isWatering ? "black" : "gray"}
 						/>
 					</Block>
 				</Block>
