@@ -51,7 +51,7 @@ export default function GardenDetail(props) {
 	useEffect(() => {
 		retrieveData("jwt").then((jwt) => {
 			const url = new URL(`http://${ipAddress}:3000/garden/sensor-data`);
-			const pumpUrl = new URL(`http://${ipAddress}:3000/garden/sse`);
+			const pumpUrl = new URL(`http://${ipAddress}:3000/garden/auto-switch`);
 			// url.searchParams.append("topic", "/book/{bookId}");
 			const dataEs = new EventSource(url, {
 				headers: {
